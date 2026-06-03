@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from auth_app.models import User
 from profile_app.models import Profile
 
@@ -22,7 +23,8 @@ class ProfilTestsHappyPath(APITestCase):
             email="max@business.de",
             created_at="2023-01-01T12:00:00Z"
         )
-        self.client.login(username='testuser', password='testpassword123')
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_get_profil_by_id(self):
         url = reverse('profile', kwargs={'pk': self.profile.id})

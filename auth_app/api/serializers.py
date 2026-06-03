@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from auth_app.models import User
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from profile_app.models import Profile
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -74,6 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
             type=validated_data['type']
         )
         Token.objects.create(user=user)
+        Profile.objects.create(user=user)
         return user
 
 
