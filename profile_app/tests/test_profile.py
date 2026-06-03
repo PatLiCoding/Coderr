@@ -27,6 +27,6 @@ class ProfilTestsHappyPath(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_get_profil_by_id(self):
-        url = reverse('profile', kwargs={'pk': self.profile.id})
+        url = reverse('profile', kwargs={'user_id': self.user.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
