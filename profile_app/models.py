@@ -1,5 +1,6 @@
 from django.db import models
 from auth_app.models import User
+from profile_app.service import user_profile_path
 
 
 # Create your models here.
@@ -12,7 +13,7 @@ class Profile(models.Model):
     """
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='profil')
-    file = models.FileField(upload_to='uploads/', blank=True, null=True)
+    file = models.FileField(upload_to=user_profile_path, null=True, blank=True)
     tel = models.CharField(max_length=20, blank=True, default='')
     location = models.CharField(max_length=100, blank=True, default='')
     description = models.TextField(blank=True, default='')

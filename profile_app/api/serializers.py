@@ -58,8 +58,9 @@ class ProfilDetailSerializer(serializers.ModelSerializer):
             default_storage.delete(instance.file.name)
         ext = uploaded_file.name.split('.')[-1]
         custom_path = f'uploads/user_{instance.user.id}/profile.{ext}'
-        instance.file = default_storage.save(custom_path, uploaded_file)
-        instance.save(update_fields=['file'])
+        uploaded_file.name = custom_path
+        instance.file = uploaded_file
+        instance.save()
 
 
 class BusinessSerializer(serializers.ModelSerializer):
