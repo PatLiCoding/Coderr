@@ -7,8 +7,16 @@ from profile_app.models import Profile
 
 
 class ProfilTestsHappyPath(APITestCase):
+    """
+    Test cases for successful API requests (Happy Path) regarding
+    customer profiles.
+    """
 
     def setUp(self):
+        """
+        Set up the test environment: create a customer user,
+        an associated profile, and authenticate the client using a token.
+        """
         self.user = User.objects.create_user(
             username='testuser',
             password='testpassword123',
@@ -28,10 +36,45 @@ class ProfilTestsHappyPath(APITestCase):
         self.url = reverse('customer')
 
     def test_get_list_business_return_200(self):
+        """
+        Ensure an authenticated customer can successfully retrieve the list
+        (status 200).
+        """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_response(self):
+
+class ProfilTestsUnhappyPath(APITestCase):
+    """
+    Test cases for failed or unauthorized API requests (Unhappy Path)
+    regarding customer profiles.
+    """
+
+    def setUp(self):
+        """
+        Set up the test environment for failure scenarios (without automatic
+        client authentication).
+        """
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpassword123',
+            first_name='firstname',
+            last_name='lastname',
+            type='customer'
+        )
+        self.profile = Profile.objects.create(
+            user=self.user,
+            tel="123456789",
+            location="Berlin",
+            description="Business description",
+            working_hours="9-17",
+        )
+        self.url = reverse('customer')
+
+    def test_get_list_business_unauthenticated_returns_401(self):
+        """
+        Failure: The user is not logged in (no token provided in the header).
+        """
+        self.client.credentials()
         response = self.client.get(self.url)
-        print(response.data)
-        assert False
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

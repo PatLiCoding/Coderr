@@ -17,3 +17,10 @@ class User(AbstractUser):
 
     type = models.CharField(
         max_length=20, choices=USER_TYPES, default='customer')
+
+    def __str__(self):
+        """
+        Returns the username of the associated user as the string
+        representation.
+        """
+        return self.username

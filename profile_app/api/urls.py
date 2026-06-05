@@ -1,3 +1,8 @@
+"""
+URL configuration for profile-related API endpoints.
+Maps profile details and role-based listings (business/customer) to their
+respective views.
+"""
 from django.urls import path
 from .views import ProfilDetailView, BusinessListView, CustomerListView
 
