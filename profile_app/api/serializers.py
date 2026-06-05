@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.core.files.storage import default_storage
 from profile_app.models import Profile
+from django.utils import timezone
 
 
 class ProfilDetailSerializer(serializers.ModelSerializer):
@@ -51,16 +52,31 @@ class ProfilDetailSerializer(serializers.ModelSerializer):
 
     def _handle_file(self, instance, uploaded_file):
         """
-        Helper method managing storage cleanups and generating clean,
-        user-isolated file system paths for uploaded files.
+        Orchestrates the file update process by removing the old file and
+        saving the new one.
+        """
+        self._delete_old_file(instance)
+        self._save_new_file(instance, uploaded_file)
+
+    def _delete_old_file(self, instance):
+        """
+        Checks for the existence of an old profile file and deletes it from
+        storage if found.
         """
         if instance.file and default_storage.exists(instance.file.name):
             default_storage.delete(instance.file.name)
+
+    def _save_new_file(self, instance, uploaded_file):
+        """
+        Saves the newly uploaded file to a user-isolated path and updates the
+        file upload timestamp.
+        """
         ext = uploaded_file.name.split('.')[-1]
-        custom_path = f'uploads/user_{instance.user.id}/profile.{ext}'
-        uploaded_file.name = custom_path
+        path = f'uploads/user_{instance.user.id}/profile.{ext}'
+        uploaded_file.name = path
         instance.file = uploaded_file
-        instance.save()
+        instance.uploaded_at = timezone.now()
+        instance.save(update_fields=['file', 'uploaded_at'])
 
 
 class BusinessSerializer(serializers.ModelSerializer):

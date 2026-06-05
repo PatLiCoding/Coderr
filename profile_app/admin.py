@@ -1,5 +1,6 @@
 from django.contrib import admin
 from profile_app.models import Profile
+from django.utils import timezone
 
 # Register your models here.
 
@@ -38,6 +39,19 @@ class ProfileAdmin(admin.ModelAdmin):
         return obj.user.username
     user_username.short_description = 'User'
     user_username.admin_order_field = 'user__username'
+
+    def save_model(self, request, obj, form, change):
+        """
+        Overrides the standard model saving flow in the Django Admin interface.
+
+        Automatically updates or clears the 'uploaded_at' timestamp depending
+        on whether a profile file is currently attached to the object.
+        """
+        if obj.file:
+            obj.uploaded_at = timezone.now()
+        else:
+            obj.uploaded_at = None
+        super().save_model(request, obj, form, change)
 
 
 admin.site.register(Profile, ProfileAdmin)

@@ -1,24 +1,6 @@
-import sys
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
-from profile_app.models import Profile
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_user_profile(sender, instance, created, **kwargs):
-    """
-    Signal receiver that automatically creates a Profile instance whenever a
-    new User is registered.
-
-    Triggered immediately after a User instance is saved. It checks the
-    'created' flag to ensure the profile is only initialized during the
-    initial user creation.
-    """
-    if 'test' in sys.argv or ''.join(sys.argv).find('pytest') != -1:
-        return
-    if created:
-        Profile.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
