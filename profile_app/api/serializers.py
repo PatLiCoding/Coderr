@@ -43,3 +43,34 @@ class ProfilDetailSerializer(serializers.ModelSerializer):
         custom_path = f'uploads/user_{instance.user.id}/profile.{ext}'
         instance.file = default_storage.save(custom_path, uploaded_file)
         instance.save(update_fields=['file'])
+
+
+class BusinessSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.id')
+    username = serializers.ReadOnlyField(source='user.username')
+    type = serializers.ReadOnlyField(source='user.type')
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
+
+    class Meta:
+        model = Profile
+        fields = [
+            'user', 'username', 'first_name', 'last_name',
+            'file', 'location', 'tel', 'description',
+            'working_hours', 'type'
+        ]
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.id')
+    username = serializers.ReadOnlyField(source='user.username')
+    type = serializers.ReadOnlyField(source='user.type')
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
+
+    class Meta:
+        model = Profile
+        fields = [
+            'user', 'username', 'first_name', 'last_name',
+            'file', 'location', 'type'
+        ]
