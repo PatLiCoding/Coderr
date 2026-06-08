@@ -83,9 +83,9 @@ class OffersTestsHappyPath(APITestCase):
     #     print(response.data)
     #     assert False
 
-    def test_get_offerdetail(self):
-        self.url = reverse('offerdetail-detail',
-                           kwargs={'offerdetail_id': self.offerdetail1.id})
-        response = self.client.get(self.url)
-        print(response.data)
-        assert False
+    # def test_get_offerdetail(self):
+    #     self.url = reverse('offerdetail-detail',
+    #                        kwargs={'offerdetail_id': self.offerdetail1.id})
+    #     response = self.client.get(self.url)
+    #     print(response.data)
+    #     assert False
