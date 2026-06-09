@@ -2,6 +2,17 @@ from rest_framework import serializers
 from offers_app.models import Offer, OfferDetail
 
 
+class OfferDetailLinkSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        return f"/offerdetails/{obj.id}/"
+
+
 class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -35,6 +46,7 @@ class OfferSerializer(serializers.ModelSerializer):
 
 class OffersListSerializer(OfferSerializer):
     user_details = serializers.SerializerMethodField()
+    details = OfferDetailLinkSerializer(many=True, read_only=True)
 
     class Meta:
         model = Offer
@@ -51,3 +63,29 @@ class OffersListSerializer(OfferSerializer):
             'last_name': obj.user.last_name,
             'username': obj.user.username,
         }
+
+
+class OfferCreateSerializer(serializers.ModelSerializer):
+    details = OfferDetailSerializer(many=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'title',
+            'image',
+            'description',
+            'details',
+        ]
+
+    def create(self, validated_data):
+        details_data = validated_data.pop('details')
+        offer = Offer.objects.create(
+            user=self.context['request'].user,
+            **validated_data
+        )
+        for detail_data in details_data:
+            OfferDetail.objects.create(
+                offer=offer,
+                **detail_data
+            )
+        return offer
