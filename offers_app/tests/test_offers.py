@@ -109,3 +109,91 @@ class OffersTestsHappyPath(APITestCase):
         self.url = reverse('offer-detail', kwargs={'offer_id': self.offer.id})
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class OffersTestsUnhappyPath(APITestCase):
+    """
+    Test suite executing unhappy path and edge-case operations for the Offers
+    application endpoints.
+
+    Verifies that the API correctly handles unauthenticated requests,
+    unauthorized actions, invalid payloads, and non-existent resources.
+    """
+
+    def setUp(self):
+        """
+        Initializes the test environment with an existing offer and a regular
+        customer user to test permission boundaries.
+        """
+        self.business_user = User.objects.create_user(
+            username='bizuser', password='testpassword123', type='business')
+
+        self.offer = Offer.objects.create(
+            user=self.business_user, title='Existing Offer',
+            description='Test', min_price=10.00, min_delivery_time=5)
+        self.customer_user = User.objects.create_user(
+            username='customeruser', password='testpassword123',
+            type='customer')
+        self.customer_token = Token.objects.create(user=self.customer_user)
+
+    def test_get_non_existent_offer_returns_404(self):
+        """
+        Verifies that requesting an offer ID that does not exist returns
+        404 Not Found.
+        """
+        self.url = reverse('offer-detail', kwargs={'offer_id': 99999})
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + self.customer_token.key)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_unauthenticated_post_returns_401(self):
+        """
+        Verifies that creating an offer without an authentication token
+        returns 401 Unauthorized.
+        """
+        self.client.credentials()
+        self.url = reverse('offers')
+        response = self.client.post(
+            self.url, VALID_OFFER_POST_DATA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_customer_user_cannot_create_offer_returns_403(self):
+        """
+        Verifies that a user with type 'customer' is forbidden from creating
+        an offer.
+        """
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + self.customer_token.key)
+        self.url = reverse('offers')
+        response = self.client.post(
+            self.url, VALID_OFFER_POST_DATA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_post_invalid_offer_data_returns_400(self):
+        """
+        Verifies that sending an invalid/empty payload returns 400 Bad Request.
+        """
+        business_token = Token.objects.create(user=self.business_user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + business_token.key)
+        self.url = reverse('offers')
+        invalid_data = {'title': ''}
+        response = self.client.post(self.url, invalid_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_patch_offer_of_different_owner_returns_403_or_404(self):
+        """
+        Verifies that a user cannot modify an offer they do not own.
+        Depending on your architecture, this should return 403 Forbidden
+        (or 404 if you filter queries by request.user).
+        """
+        other_business = User.objects.create_user(
+            username='otherbiz', password='testpassword123', type='business')
+        other_token = Token.objects.create(user=other_business)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + other_token.key)
+        self.url = reverse('offer-detail', kwargs={'offer_id': self.offer.id})
+        response = self.client.patch(
+            self.url, VALID_OFFER_PATCH_DATA, format='json')
+        self.assertIn(response.status_code, [
+                      status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
