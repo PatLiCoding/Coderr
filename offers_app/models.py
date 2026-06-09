@@ -1,5 +1,6 @@
 from django.db import models
 from auth_app.models import User
+from offers_app.service import offer_path
 
 # Create your models here.
 
@@ -11,7 +12,7 @@ class Offer(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='offers')
     title = models.CharField(max_length=255)
-    image = models.FileField(upload_to='offers/', null=True, blank=True)
+    image = models.FileField(upload_to=offer_path, null=True, blank=True)
     description = models.TextField()
     min_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00)
