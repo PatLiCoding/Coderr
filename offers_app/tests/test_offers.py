@@ -118,24 +118,28 @@ class OffersTestsHappyPath(APITestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-# Response Return tests:
+    def test_patch_offer(self):
+        self.url = reverse('offer-detail', kwargs={'offer_id': self.offer.id})
+        data = {
+            "title": "Updated Grafikdesign-Paket",
+            "details": [
+                {
+                    "title": "Basic Design Updated",
+                    "revisions": 3,
+                    "delivery_time_in_days": 6,
+                    "price": 120,
+                    "features": [
+                        "Logo Design",
+                        "Flyer"
+                    ],
+                    "offer_type": "basic"
+                }
+            ]
+        }
+        response = self.client.patch(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # def test_get_list_offers(self):
-    #     self.url = reverse('offers')
-    #     response = self.client.get(self.url)
-    #     print(response.data)
-    #     assert False
-
-    # def test_get_offer(self):
-    #     self.url = reverse(
-    #         'offer-detail', kwargs={'offer_id': self.offer.id})
-    #     response = self.client.get(self.url)
-    #     print(response.data)
-    #     assert False
-
-    # def test_get_offerdetail(self):
-    #     self.url = reverse('offerdetail-detail',
-    #                        kwargs={'offerdetail_id': self.offerdetail1.id})
-    #     response = self.client.get(self.url)
-    #     print(response.data)
-    #     assert False
+    def test_delete_offer(self):
+        self.url = reverse('offer-detail', kwargs={'offer_id': self.offer.id})
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

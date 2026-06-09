@@ -1,4 +1,5 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, \
+    RetrieveUpdateDestroyAPIView
 from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from offers_app.api.filter import OfferFilter
@@ -25,7 +26,7 @@ class OffersListView(ListCreateAPIView):
         return OffersListSerializer
 
 
-class OfferView(RetrieveAPIView):
+class OfferView(RetrieveUpdateDestroyAPIView):
     serializer_class = OfferSerializer
     permission_classes = [IsBusinessOrOwner]
     queryset = Offer.objects.all()

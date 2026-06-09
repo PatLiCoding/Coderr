@@ -26,6 +26,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 class OfferSerializer(serializers.ModelSerializer):
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
+    details = OfferDetailSerializer(many=True)
 
     class Meta:
         model = Offer
@@ -42,6 +43,26 @@ class OfferSerializer(serializers.ModelSerializer):
     def get_min_delivery_time(self, obj):
         times = obj.details.values_list('delivery_time_in_days', flat=True)
         return min(times) if times else 0
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        self._handle_details_update(instance, details_data)
+        return instance
+
+    def _handle_details_update(self, instance, details_data):
+        if details_data is not None:
+            existing_details = {
+                detail.offer_type: detail for detail in instance.details.all()}
+            for detail_item in details_data:
+                offer_type = detail_item.get('offer_type')
+                if offer_type in existing_details:
+                    detail_instance = existing_details[offer_type]
+                    for attr, value in detail_item.items():
+                        setattr(detail_instance, attr, value)
+                    detail_instance.save()
 
 
 class OffersListSerializer(OfferSerializer):
