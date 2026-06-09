@@ -11,6 +11,16 @@ from offers_app.api.permissions import IsBusinessOrOwner
 
 
 class OffersListView(ListCreateAPIView):
+    """
+    API endpoint allowing clients to list existing offers or create a
+    new offer.
+
+    Features:
+        - Strict permission filtering utilizing `IsBusinessOrOwner`.
+        - Paginated listings using `OfferPagination`.
+        - Advanced dynamic querying filters (DjangoFilter, Ordering,
+            Text Searching).
+    """
     serializer_class = OffersListSerializer
     queryset = Offer.objects.all()
     permission_classes = [IsBusinessOrOwner]
@@ -21,12 +31,28 @@ class OffersListView(ListCreateAPIView):
     search_fields = ['title', 'description']
 
     def get_serializer_class(self):
+        """
+        Dynamically decides serializer workflows depending on incoming
+        HTTP methods.
+
+        Returns:
+            Serializer class: `OfferCreateSerializer` for creation tasks
+            (POST), otherwise fallback defaults to `OffersListSerializer`
+            (GET).
+        """
         if self.request.method == 'POST':
             return OfferCreateSerializer
         return OffersListSerializer
 
 
 class OfferView(RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, or deleting a targeted individual
+    Offer instance.
+
+    Looks up entities directly via matching the configured URL keyword
+    arguments (`offer_id`).
+    """
     serializer_class = OfferSerializer
     permission_classes = [IsBusinessOrOwner]
     queryset = Offer.objects.all()
@@ -34,6 +60,13 @@ class OfferView(RetrieveUpdateDestroyAPIView):
 
 
 class OfferDetailView(RetrieveAPIView):
+    """
+    Read-only API endpoint providing read lookup capabilities for individual
+    sub-details items.
+
+    Identifies isolated model rows using the primary URL argument
+    (`offerdetail_id`).
+    """
     serializer_class = OfferDetailSerializer
     permission_classes = [IsBusinessOrOwner]
     queryset = OfferDetail.objects.all()

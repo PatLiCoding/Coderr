@@ -1,3 +1,22 @@
+"""
+URL Configuration for the Offers application.
+
+This module routes incoming HTTP requests to the appropriate Class-Based
+Views (CBVs).
+
+Endpoints:
+    - /offers/ :
+        Handles listing existing offers and creating new ones.
+        Name: 'offers'
+    - /offers/<offer_id>/ :
+        Handles retrieving, updating, or deleting a specific offer instance
+        by ID.
+        Name: 'offer-detail'
+    - /offerdetails/<offerdetail_id>/ :
+        Handles retrieving, updating, or deleting granular sub-details of an
+        offer by ID.
+        Name: 'offerdetail-detail'
+"""
 from django.urls import path
 from .views import OffersListView, OfferView, OfferDetailView
 
