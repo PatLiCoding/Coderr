@@ -36,9 +36,29 @@ class OdersTestsHappyPath(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_post_order_return_201(self):
+        self.url = reverse('orders')
+        data = {
+            "offer_detail_id": 1
+        }
+        response = self.client.post(
+            self.url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 # Response Return tests:
     # def test_get_list(self):
     #     url = reverse('orders')
     #     response = self.client.get(url)
     #     print("Data:", response.data)
+    #     assert False
+
+    # def test_post(self):
+    #     self.url = reverse('orders')
+    #     data = {
+    #         "offer_detail_id": 1
+    #     }
+    #     response = self.client.post(
+    #         self.url, data, format='json')
+    #     print(response.data)
     #     assert False
