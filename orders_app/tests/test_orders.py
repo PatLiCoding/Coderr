@@ -46,6 +46,18 @@ class OdersTestsHappyPath(APITestCase):
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_get_order_count_business_user_return_200(self):
+        self.url = reverse('order-count',
+                           kwargs={'business_user_id': self.business_user.id})
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_completed_order_count_business_user_return_200(self):
+        self.url = reverse('completed-order-count',
+                           kwargs={'business_user_id': self.business_user.id})
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 # Response Return tests:
     # def test_get_list(self):
     #     url = reverse('orders')
