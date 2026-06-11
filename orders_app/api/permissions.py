@@ -17,8 +17,8 @@ class IsBusinessOrOwnerOrCustomer(BasePermission):
                 obj.customer_user == request.user
                 or obj.business_user == request.user
             )
-
-        if request.method in ['PATCH', 'DELETE']:
+        if request.method == 'PATCH':
             return obj.business_user == request.user
-
+        if request.method == 'DELETE':
+            return request.user.is_staff
         return False

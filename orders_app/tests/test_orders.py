@@ -18,6 +18,10 @@ class OdersTestsHappyPath(APITestCase):
             username='customerUser', password='testpassword123',
             first_name='firstname', last_name='lastname',
             type='customer')
+        self.staff_user = User.objects.create_user(
+            username='staffUser', password='testpassword123',
+            first_name='firstname', last_name='lastname',
+            type='business')
         self.offer = Offer.objects.create(
             user=self.business_user, title='Test', description='Test',
             min_price=12.00, min_delivery_time=3)
@@ -43,8 +47,28 @@ class OdersTestsHappyPath(APITestCase):
         }
         response = self.client.post(
             self.url, data, format='json')
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_patch_order_return_200(self):
+        self.token = Token.objects.create(user=self.business_user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.url = reverse('orders-detail', kwargs={'order_id': self.offer.id})
+        data = {
+            "status": "completed"
+        }
+        response = self.client.patch(
+            self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_order_return_204(self):
+        self.staff_user.is_staff = True
+        self.staff_user.save()
+        self.token = Token.objects.create(user=self.staff_user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.url = reverse(
+            'orders-detail', kwargs={'order_id': self.offer.id})
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_order_count_business_user_return_200(self):
         self.url = reverse('order-count',
@@ -71,6 +95,19 @@ class OdersTestsHappyPath(APITestCase):
     #         "offer_detail_id": 1
     #     }
     #     response = self.client.post(
+    #         self.url, data, format='json')
+    #     print(response.data)
+    #     assert False
+
+    # def test_patch(self):
+    #     self.token = Token.objects.create(user=self.business_user)
+    #     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+    #     self.url = reverse(
+    #         'orders-detail', kwargs={'order_id': self.offer.id})
+    #     data = {
+    #         "status": "completed"
+    #     }
+    #     response = self.client.patch(
     #         self.url, data, format='json')
     #     print(response.data)
     #     assert False

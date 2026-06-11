@@ -1,15 +1,16 @@
+from auth_app.models import User
+from orders_app.api.permissions import IsBusinessOrOwnerOrCustomer
+from orders_app.models import Order
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView
-#  , RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListCreateAPIView, \
+    RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from orders_app.api.serializers import OrderSerializer, OrderCreateSerializer
-from orders_app.models import Order
-from orders_app.api.permissions import IsBusinessOrOwnerOrCustomer
-from auth_app.models import User
+from orders_app.api.serializers import OrderSerializer, \
+    OrderCreateSerializer, OrderDetailSerializer
 
 
 class OrdersView(ListCreateAPIView):
@@ -35,6 +36,13 @@ class OrdersView(ListCreateAPIView):
         order = serializer.save()
         response = OrderSerializer(order)
         return Response(response.data, status=status.HTTP_201_CREATED)
+
+
+class OrderDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = OrderDetailSerializer
+    queryset = Order.objects.all()
+    permission_classes = [IsBusinessOrOwnerOrCustomer]
+    lookup_url_kwarg = 'order_id'
 
 
 class OrderCountBusinessUserView(APIView):

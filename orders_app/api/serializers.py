@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from offers_app.models import OfferDetail
 from orders_app.models import Order
 
@@ -40,3 +41,28 @@ class OrderCreateSerializer(serializers.Serializer):
             offer_detail=offer_detail,
             status='in_progress'
         )
+
+
+class OrderDetailSerializer(OrderSerializer):
+
+    class Meta(OrderSerializer.Meta):
+        read_only_fields = [
+            'id',
+            'customer_user',
+            'business_user',
+            'title',
+            'revisions',
+            'delivery_time_in_days',
+            'price',
+            'features',
+            'offer_type',
+            'created_at',
+        ]
+
+    def upadate(self, instance, validated_data):
+        order = get_object_or_404(Order, id=validated_data['order_id'])
+        if order.status:
+            instance = super().update(order.status, validated_data)
+            instance.updated_at = timezone.now()
+            instance.save()
+        return instance
