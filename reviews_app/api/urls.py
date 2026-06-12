@@ -1,4 +1,7 @@
-
+"""
+URL configuration for the reviews application.
+Maps resource locations for managing collections and single detail instances.
+"""
 from django.urls import path
 from .views import ReviewsView, ReviewsDetailView
 
