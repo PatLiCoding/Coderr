@@ -6,6 +6,11 @@ from orders_app.models import Order
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """
+    Serializer for displaying comprehensive order information.
+    Flattens read-only related attributes directly from the linked
+    OfferDetail model.
+    """
     title = serializers.CharField(source='offer_detail.title')
     revisions = serializers.IntegerField(source='offer_detail.revisions')
     delivery_time_in_days = serializers.IntegerField(
@@ -27,6 +32,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderCreateSerializer(serializers.Serializer):
+    """
+    Serializer dedicated to validating and processing new order
+    creation entries.
+    """
     offer_detail_id = serializers.IntegerField()
 
     def create(self, validated_data):
@@ -44,6 +53,10 @@ class OrderCreateSerializer(serializers.Serializer):
 
 
 class OrderDetailSerializer(OrderSerializer):
+    """
+    Create a new Order record by extracting parent data from the
+    offer details.
+    """
 
     class Meta(OrderSerializer.Meta):
         read_only_fields = [
@@ -60,6 +73,10 @@ class OrderDetailSerializer(OrderSerializer):
         ]
 
     def upadate(self, instance, validated_data):
+        """
+        Serializer handling read/write logic on single order records.
+        Locks related offer data fields to read-only during instance updates.
+        """
         order = get_object_or_404(Order, id=validated_data['order_id'])
         if order.status:
             instance = super().update(order.status, validated_data)

@@ -1,3 +1,8 @@
+"""
+URL configuration for the orders application.
+Defines the routing architecture for managing client orders, detail views,
+and business metric counters.
+"""
 from django.urls import path
 from .views import OrdersView, OrderDetailView, \
     OrderCountBusinessUserView, CompletedOrderCountBusinessUserView

@@ -14,11 +14,18 @@ from orders_app.api.serializers import OrderSerializer, \
 
 
 class OrdersView(ListCreateAPIView):
+    """
+    View endpoint handling orders listing (GET) and order placements (POST).
+    """
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     permission_classes = [IsBusinessOrOwnerOrCustomer]
 
     def get_queryset(self):
+        """
+        Filter list to show only records belonging to the requesting
+        participant.
+        """
         user = self.request.user
         return Order.objects.filter(
             Q(customer_user=user) |
@@ -26,11 +33,18 @@ class OrdersView(ListCreateAPIView):
         )
 
     def get_serializer_class(self):
+        """
+        Dynamically assign serializer classes depending on the execution route.
+        """
         if self.request.method == 'POST':
             return OrderCreateSerializer
         return OrderSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Process incoming client transactions and return unified representation
+        values.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
@@ -39,6 +53,9 @@ class OrdersView(ListCreateAPIView):
 
 
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Detail workspace endpoint serving individual orders management routines.
+    """
     serializer_class = OrderDetailSerializer
     queryset = Order.objects.all()
     permission_classes = [IsBusinessOrOwnerOrCustomer]
@@ -46,9 +63,13 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class OrderCountBusinessUserView(APIView):
+    """
+    Analytical metric counter tracking a business user's pending/active orders.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        """Calculate the numerical amount of running agreements."""
         business_user = get_object_or_404(
             User, id=business_user_id, type='business')
         count = Order.objects.filter(
@@ -58,9 +79,14 @@ class OrderCountBusinessUserView(APIView):
 
 
 class CompletedOrderCountBusinessUserView(APIView):
+    """
+    Analytical metric counter tracking a business user's historically
+    archived sales.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        """Calculate the total amount of successfully completed orders."""
         business_user = get_object_or_404(
             User, id=business_user_id, type='business')
         count = Order.objects.filter(
