@@ -26,3 +26,15 @@ class ReviewSerializer(serializers.ModelSerializer):
                     reviewer=reviewer, business_user=business_user).exists():
                 raise PermissionDenied()
         return data
+
+
+class ReviewDetailSerializer(ReviewSerializer):
+
+    class Meta:
+        model = Review
+        fields = [
+            'id', 'business_user', 'reviewer', 'rating',
+            'description', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'business_user',
+                            'reviewer', 'created_at', 'updated_at']
