@@ -23,6 +23,7 @@ import profile_app.api.urls
 import offers_app.api.urls
 import orders_app.api.urls
 import reviews_app.api.urls
+import base_info_app.api.urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +31,8 @@ urlpatterns = [
     path('api/', include(profile_app.api.urls)),
     path('api/', include(offers_app.api.urls)),
     path('api/', include(orders_app.api.urls)),
-    path('api/', include(reviews_app.api.urls))
+    path('api/', include(reviews_app.api.urls)),
+    path('api/', include(base_info_app.api.urls))
 ]
 
 if settings.DEBUG:
