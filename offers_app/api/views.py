@@ -4,7 +4,8 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from offers_app.api.filter import OfferFilter
 from offers_app.api.serializers import OffersListSerializer, \
-    OfferCreateSerializer, OfferSerializer, OfferDetailSerializer
+    OfferCreateSerializer, OfferSerializer, OfferUpdateSerializer, \
+    OfferDetailSerializer
 from offers_app.models import Offer, OfferDetail
 from offers_app.api.pagination import OfferPagination
 from offers_app.api.permissions import IsBusinessOrOwner
@@ -57,6 +58,11 @@ class OfferView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsBusinessOrOwner]
     queryset = Offer.objects.all()
     lookup_url_kwarg = 'offer_id'
+
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return OfferUpdateSerializer
+        return OfferSerializer
 
 
 class OfferDetailView(RetrieveAPIView):

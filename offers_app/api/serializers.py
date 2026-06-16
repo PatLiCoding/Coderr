@@ -30,13 +30,26 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
         return f"/offerdetails/{obj.id}/"
 
 
+class OfferDetailAbsoluteLinkSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        request = self.context.get("request")
+        return request.build_absolute_uri(
+            f"/api/offerdetails/{obj.id}/")
+
+
 class OfferDetailSerializer(serializers.ModelSerializer):
     """Standard serializer for complete OfferDetail object data."""
 
     class Meta:
         model = OfferDetail
         fields = [
-            'title', 'revisions', 'delivery_time_in_days',
+            'id', 'title', 'revisions', 'delivery_time_in_days',
             'price', 'features', 'offer_type',
         ]
 
@@ -57,7 +70,7 @@ class OfferSerializer(serializers.ModelSerializer):
     """
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
-    details = OfferDetailSerializer(many=True)
+    details = OfferDetailAbsoluteLinkSerializer(many=True)
 
     class Meta:
         model = Offer
@@ -92,6 +105,16 @@ class OfferSerializer(serializers.ModelSerializer):
         """
         times = obj.details.values_list('delivery_time_in_days', flat=True)
         return min(times) if times else 0
+
+
+class OfferUpdateSerializer(serializers.ModelSerializer):
+    details = OfferDetailSerializer(many=True, required=False)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'title', 'image',
+            'description', 'details']
 
     def update(self, instance, validated_data):
         """
@@ -185,10 +208,8 @@ class OfferCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
         fields = [
-            'title',
-            'image',
-            'description',
-            'details',
+            'id', 'title', 'image',
+            'description', 'details',
         ]
 
     def create(self, validated_data):
