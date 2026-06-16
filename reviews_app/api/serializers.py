@@ -44,8 +44,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ReviewDetailSerializer(ReviewSerializer):
     """
     Serializer optimized for individual review detail interactions.
+
     Locks down the target 'business_user' relation to prevent shifting ratings
-    between profiles.
+    between profiles, ensuring payload safety during updates.
     """
 
     class Meta:
@@ -56,3 +57,29 @@ class ReviewDetailSerializer(ReviewSerializer):
         ]
         read_only_fields = ['id', 'business_user',
                             'reviewer', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        """
+        Validates incoming data to strictly forbid non-editable fields.
+
+        Ensures that clients can only supply fields intended for evaluation
+        modifications, throwing explicit errors for any unexpected payload
+        contamination.
+
+        Args:
+            attrs (dict): Dictionary of validated input attributes.
+
+        Raises:
+            serializers.ValidationError: If fields outside of 'rating' and
+                'description' are provided in the raw request.
+
+        Returns:
+            dict: The validated attributes dataset.
+        """
+        allowed_fields = {'rating', 'description'}
+        received_fields = set(self.initial_data.keys())
+        unknown = received_fields - allowed_fields
+        if unknown:
+            raise serializers.ValidationError(
+                {field: "Unknown field." for field in unknown})
+        return attrs

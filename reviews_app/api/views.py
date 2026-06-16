@@ -2,6 +2,7 @@ from rest_framework.generics import ListCreateAPIView, \
     RetrieveUpdateDestroyAPIView
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from reviews_app.api.filter import ReviewFilter
 from reviews_app.api.permissions import IsCustomerOrOwner
 from reviews_app.api.serializers import ReviewSerializer, \
     ReviewDetailSerializer
@@ -18,7 +19,7 @@ class ReviewsView(ListCreateAPIView):
     queryset = Review.objects.all()
     permission_classes = [IsCustomerOrOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ['business_user', 'reviewer']
+    filterset_class = ReviewFilter
     ordering_fields = ['updated_at', 'rating']
 
     def perform_create(self, serializer):
