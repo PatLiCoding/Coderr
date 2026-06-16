@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from offers_app.models import OfferDetail
 from orders_app.models import Order
 
@@ -39,6 +38,19 @@ class OrderCreateSerializer(serializers.Serializer):
     offer_detail_id = serializers.IntegerField()
 
     def create(self, validated_data):
+        """
+        Resolves offer references and creates a new Order record instance.
+
+        Infers the ordering customer from the active session and assigns the
+        associated business user automatically based on the chosen offer
+        details.
+
+        Args:
+            validated_data (dict): Cleaned and validated payload dictionary.
+
+        Returns:
+            Order: The newly initialized Order model database instance.
+        """
         request = self.context['request']
         offer_detail = get_object_or_404(
             OfferDetail,
@@ -52,34 +64,68 @@ class OrderCreateSerializer(serializers.Serializer):
         )
 
 
-class OrderDetailSerializer(OrderSerializer):
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
     """
-    Create a new Order record by extracting parent data from the
-    offer details.
+    Serializer optimized strictly for mutating state progression paths
+    on existing Orders, preventing any side fields pollution.
     """
+    class Meta:
+        model = Order
+        fields = ['status']
 
-    class Meta(OrderSerializer.Meta):
-        read_only_fields = [
-            'id',
-            'customer_user',
-            'business_user',
-            'title',
-            'revisions',
-            'delivery_time_in_days',
-            'price',
-            'features',
-            'offer_type',
-            'created_at',
-        ]
+    def validate_status(self, value):
+        """
+        Validates that the incoming status value conforms to the application
+        ruleset.
 
-    def upadate(self, instance, validated_data):
+        Args:
+            value (str): The state value proposed in the payload.
+
+        Raises:
+            serializers.ValidationError: If the value is not in the allowed
+            pool.
+
+        Returns:
+            str: The confirmed valid state string.
         """
-        Serializer handling read/write logic on single order records.
-        Locks related offer data fields to read-only during instance updates.
+        allowed = ['in_progress', 'completed', 'cancelled']
+        if value not in allowed:
+            raise serializers.ValidationError("Invalid status.")
+        return value
+
+    def validate(self, attrs):
         """
-        order = get_object_or_404(Order, id=validated_data['order_id'])
-        if order.status:
-            instance = super().update(order.status, validated_data)
-            instance.updated_at = timezone.now()
-            instance.save()
+        Validates overall structural components to explicitly forbid
+        extraneous keys.
+
+        Args:
+            attrs (dict): Dictionary of validated input attributes.
+
+        Raises:
+            serializers.ValidationError: If foreign data is mixed into the
+            request.
+
+        Returns:
+            dict: The validated attributes dataset.
+        """
+        unknown = set(self.initial_data) - set(self.fields)
+        if unknown:
+            raise serializers.ValidationError(
+                {k: "Invalid field." for k in unknown}
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        """
+        Persists state transitions safely onto the targeted Order instance.
+
+        Args:
+            instance (Order): The current Order database record instance.
+            validated_data (dict): Validated safe input dataset.
+
+        Returns:
+            Order: The updated Order database instance.
+        """
+        instance.status = validated_data['status']
+        instance.save()
         return instance

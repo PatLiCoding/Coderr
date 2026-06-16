@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from orders_app.api.serializers import OrderSerializer, \
-    OrderCreateSerializer, OrderDetailSerializer
+    OrderCreateSerializer, OrderStatusUpdateSerializer
 
 
 class OrdersView(ListCreateAPIView):
@@ -55,11 +55,55 @@ class OrdersView(ListCreateAPIView):
 class OrderDetailView(RetrieveUpdateDestroyAPIView):
     """
     Detail workspace endpoint serving individual orders management routines.
+
+    Provides retrieve, update (status mutation), and destroy operations for
+    a specific Order instance.
     """
-    serializer_class = OrderDetailSerializer
+    serializer_class = OrderSerializer
     queryset = Order.objects.all()
     permission_classes = [IsBusinessOrOwnerOrCustomer]
     lookup_url_kwarg = 'order_id'
+
+    def get_serializer_class(self):
+        """
+        Determines the appropriate serializer class based on the HTTP request
+        method.
+
+        Returns a strict status update serializer for PATCH requests to safely
+        mutate state, and falls back to the full read serializer for others.
+
+        Returns:
+            serializers.BaseSerializer: The serializer class to handle the
+            request.
+        """
+        if self.request.method == "PATCH":
+            return OrderStatusUpdateSerializer
+        return OrderSerializer
+
+    def update(self, request, *args, **kwargs):
+        """
+        Updates an existing Order instance.
+
+        Overrides the default update routine to enforce partial updates for
+        state mutations and ensures the returned payload uses the full detailed
+        OrderSerializer instead of the internal write-only format.
+
+        Args:
+            request (Request): The incoming HTTP request object.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            Response: DRF Response object containing the freshly serialized
+                and flattened detailed Order data.
+        """
+        partial = kwargs.pop('partial', True)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(OrderSerializer(instance).data)
 
 
 class OrderCountBusinessUserView(APIView):
