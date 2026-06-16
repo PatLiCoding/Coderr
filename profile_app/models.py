@@ -12,7 +12,7 @@ class Profile(models.Model):
     Stores professional information, contact details, and uploaded media files.
     """
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='profil')
+        User, on_delete=models.CASCADE, related_name='profile')
     file = models.FileField(upload_to=user_profile_path, null=True, blank=True)
     tel = models.CharField(max_length=20, blank=True, default='')
     location = models.CharField(max_length=100, blank=True, default='')
@@ -27,4 +27,4 @@ class Profile(models.Model):
         Returns the username of the associated user as the string
         representation.
         """
-        return self.user.username
+        return f"Profile of {self.user.username}"

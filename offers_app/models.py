@@ -22,6 +22,8 @@ class Offer(models.Model):
 
     class Meta:
         ordering = ['-updated_at']
+        verbose_name = "Offer"
+        verbose_name_plural = "Offers"
 
     def __str__(self):
         return self.title
@@ -46,6 +48,10 @@ class OfferDetail(models.Model):
     features = models.JSONField(default=list)
     offer_type = models.CharField(
         max_length=10, choices=OFFER_TYPES, default='basic')
+
+    class Meta:
+        verbose_name = 'Offer Detail'
+        verbose_name_plural = 'Offer Details'
 
     def __str__(self):
         return f"{self.offer.title} - {self.offer_type}"

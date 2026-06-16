@@ -19,9 +19,17 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Review"
+        verbose_name_plural = "Reviews"
+
     def __str__(self):
         """
         Return a readable metadata string format describing the
         review transaction.
         """
-        return f"Review by {self.reviewer.username} for {self.business_user.username} ({self.rating}*)"
+        return (
+            f"Review by {self.reviewer} for "
+            f"{self.business_user} ({self.rating}*)"
+        )
