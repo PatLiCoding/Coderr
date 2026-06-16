@@ -43,6 +43,9 @@ class OfferDetailInline(admin.TabularInline):
 
 class OfferAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'user', 'min_price', 'min_delivery_time')
+    list_filter = ("user", 'title',)
+    search_fields = ("id", "title", "user__username", "user__email")
+    ordering = ("-id",)
     inlines = [OfferDetailInline]
 
 

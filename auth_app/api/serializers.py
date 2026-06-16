@@ -91,41 +91,18 @@ class LoginSerializer(serializers.Serializer):
         write_only=True, style={'input_type': 'password'})
 
     def validate(self, attrs):
-        """
-        Validates the incoming login data by authenticating the user.
-
-        Args:
-            attrs (dict): A dictionary of field values passed to the
-            serializer.
-
-        Raises:
-            serializers.ValidationError: If both email and password are not
-            provided,or if authentication fails due to invalid credentials.
-
-        Returns:
-            dict: The validated attributes, including the authenticated
-            'user' object.
-        """
+        """Authenticates the user using the provided username and password."""
         username = attrs.get('username')
         password = attrs.get('password')
-
-        if username and password:
-            user = authenticate(
-                request=self.context.get('request'),
-                username=username,
-                password=password
-            )
-            if not user:
-                raise serializers.ValidationError(
-                    {"non_field_errors": [
-                        "Unable to log in with provided credentials."]},
-                    code='authorization'
-                )
-        else:
+        if not username or not password:
             raise serializers.ValidationError(
-                {"non_field_errors": [
-                    "Must include 'username' and 'password'."]},
-                code='authorization'
-            )
+                "Must include 'username' and 'password'.",
+                code='authorization')
+        user = authenticate(request=self.context.get(
+            'request'), username=username, password=password)
+        if not user:
+            raise serializers.ValidationError(
+                "Unable to log in with provided credentials.",
+                code='authorization')
         attrs['user'] = user
         return attrs
