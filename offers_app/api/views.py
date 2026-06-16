@@ -60,6 +60,18 @@ class OfferView(RetrieveUpdateDestroyAPIView):
     lookup_url_kwarg = 'offer_id'
 
     def get_serializer_class(self):
+        """
+        Determines the appropriate serializer class based on the HTTP request
+        method.
+
+        Returns a specific serializer for partial updates (PATCH) to control
+        allowed fields, and falls back to the standard serializer for other
+        methods.
+
+        Returns:
+            serializers.BaseSerializer: The serializer class to be used for
+                the current request.
+        """
         if self.request.method == 'PATCH':
             return OfferUpdateSerializer
         return OfferSerializer

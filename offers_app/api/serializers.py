@@ -5,11 +5,39 @@ from offers_app.models import Offer, OfferDetail
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
     """
     Serializer for providing a lightweight link representation of an
-    OfferDetail.
+    OfferDetail instance.
 
     Attributes:
         url (serializers.SerializerMethodField): The relative API URL to fetch
-        complete details.
+            complete details.
+    """
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        """
+        Generates the relative path URL for the specific OfferDetail instance.
+
+        Args:
+            obj (OfferDetail): The current OfferDetail object instance.
+
+        Returns:
+            str: Relative URL path string.
+        """
+        return f"/offerdetails/{obj.id}/"
+
+
+class OfferDetailAbsoluteLinkSerializer(serializers.ModelSerializer):
+    """
+    Serializer for providing an absolute URL link representation of an
+    OfferDetail instance, utilizing the request context.
+
+    Attributes:
+        url (serializers.SerializerMethodField): The absolute API URL including
+            domain and protocol.
     """
     url = serializers.SerializerMethodField()
 
@@ -25,26 +53,18 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
             obj (OfferDetail): The current OfferDetail object instance.
 
         Returns:
-            str: Relative URL path string.
+            str: Absolute URL path string.
         """
-        return f"/offerdetails/{obj.id}/"
-
-
-class OfferDetailAbsoluteLinkSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OfferDetail
-        fields = ['id', 'url']
-
-    def get_url(self, obj):
         request = self.context.get("request")
         return request.build_absolute_uri(
             f"/api/offerdetails/{obj.id}/")
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
-    """Standard serializer for complete OfferDetail object data."""
+    """
+    Standard serializer for complete OfferDetail object data representation.
+    Used for full detail views, creation, and mutation.
+    """
 
     class Meta:
         model = OfferDetail
@@ -61,12 +81,12 @@ class OfferSerializer(serializers.ModelSerializer):
     Handles retrieval and nested object modifications for individual offers.
 
     Attributes:
-        min_price (serializers.SerializerMethodField):
-            Evaluated lowest price among details.
-        min_delivery_time (serializers.SerializerMethodField):
-            Evaluatedfastest delivery time.
-        details (OfferDetailSerializer):
-            Nested list representation of assigned details.
+        min_price (serializers.SerializerMethodField): Evaluated lowest price
+            among associated details.
+        min_delivery_time (serializers.SerializerMethodField): Evaluated
+            fastest delivery time among associated details.
+        details (OfferDetailAbsoluteLinkSerializer): Nested list of lightweight
+            absolute link representations of assigned details.
     """
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
@@ -108,6 +128,10 @@ class OfferSerializer(serializers.ModelSerializer):
 
 
 class OfferUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer optimized for updating an existing Offer instance along with
+    its nested OfferDetail components based on their type.
+    """
     details = OfferDetailSerializer(many=True, required=False)
 
     class Meta:
@@ -115,6 +139,29 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'image',
             'description', 'details']
+
+    def validate(self, attrs):
+        """
+        Validates incoming attributes and ensures no unexpected or malicious
+        fields are provided in the raw payload.
+
+        Args:
+            attrs (dict): Dictionary of validated input attributes.
+
+        Raises:
+            serializers.ValidationError: If fields not present in the
+            serializer class are provided.
+
+        Returns:
+            dict: The validated attributes dataset.
+        """
+        unknown = set(self.initial_data) - set(self.fields)
+        if unknown:
+            raise serializers.ValidationError({
+                field: "Unknown field."
+                for field in unknown
+            })
+        return attrs
 
     def update(self, instance, validated_data):
         """
