@@ -1,6 +1,8 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, \
     RetrieveUpdateDestroyAPIView
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import AllowAny
+from django.db.models import Min
 from django_filters.rest_framework import DjangoFilterBackend
 from offers_app.api.filter import OfferFilter
 from offers_app.api.serializers import OffersListSerializer, \
@@ -28,8 +30,37 @@ class OffersListView(ListCreateAPIView):
     pagination_class = OfferPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = OfferFilter
-    ordering_fields = ['updated_at', 'min_price']
+    ordering_fields = ['updated_at',]
     search_fields = ['title', 'description']
+
+    def get_queryset(self):
+        """
+        Calculates the minimum price in real-time and ensures guaranteed
+        sorting so that pagination runs stably.
+        """
+        queryset = Offer.objects.annotate(
+            annotated_min_price=Min('details__price'),
+            annotated_min_delivery_time=Min('details__delivery_time_in_days'))
+        ordering = self.request.query_params.get('ordering', '')
+        if ordering == 'min_price':
+            return queryset.order_by('annotated_min_price')
+        elif ordering == '-min_price':
+            return queryset.order_by('-annotated_min_price')
+        elif ordering == 'updated_at':
+            return queryset.order_by('updated_at')
+        elif ordering == '-updated_at':
+            return queryset.order_by('-updated_at')
+        return queryset.order_by('-id')
+
+    def get_permissions(self):
+        """
+        Dynamic authorization:
+        - GET (List): Accessible to everyone (no permissions required).
+        - POST (Create): Only logged-in business users (IsBusinessOrOwner).
+        """
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsBusinessOrOwner()]
 
     def get_serializer_class(self):
         """
