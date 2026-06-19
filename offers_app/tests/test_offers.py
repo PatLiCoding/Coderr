@@ -5,7 +5,8 @@ from rest_framework.authtoken.models import Token
 from auth_app.models import User
 from offers_app.models import Offer, OfferDetail
 from offers_app.tests.test_data import VALID_OFFER_POST_DATA, \
-    VALID_OFFER_PATCH_DATA
+    VALID_OFFER_PATCH_DATA, INVALID_PAYLOAD_SINGLE_DETAIL, \
+    INVALID_PAYLOAD_DUPLICATE_TYPES
 
 
 class OffersTestsHappyPath(APITestCase):
@@ -181,6 +182,35 @@ class OffersTestsUnhappyPath(APITestCase):
         invalid_data = {'title': ''}
         response = self.client.post(self.url, invalid_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_offer_with_only_one_detail_returns_400(self):
+        """
+        Test that a POST with only one OfferDetail fails (HTTP 400).
+        """
+        business_token = Token.objects.create(user=self.business_user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + business_token.key)
+        self.url = reverse('offers')
+        response = self.client.post(
+            self.url, INVALID_PAYLOAD_SINGLE_DETAIL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('details', response.data)
+
+    def test_create_offer_with_duplicate_detail_types_returns_400(self):
+        """
+        Tests that a POST with duplicate offer_types fails (HTTP 400),
+        even if a total of 3 elements are sent.
+        """
+        business_token = Token.objects.create(user=self.business_user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + business_token.key)
+        self.url = reverse('offers')
+        count_before = Offer.objects.count()
+        response = self.client.post(
+            self.url, INVALID_PAYLOAD_DUPLICATE_TYPES, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('details', response.data)
+        self.assertEqual(Offer.objects.count(), count_before)
 
     def test_patch_offer_of_different_owner_returns_403_or_404(self):
         """

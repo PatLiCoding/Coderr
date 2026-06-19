@@ -259,6 +259,23 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             'description', 'details',
         ]
 
+    def validate_details(self, value):
+        """
+        Validates that exactly three unique offer types are provided.
+        """
+        offer_types = [item.get('offer_type')
+                       for item in value if item.get('offer_type')]
+        unique_offer_types = set(offer_types)
+        if len(value) != 3:
+            raise serializers.ValidationError(
+                "A total of exactly three OfferDetails may be passed."
+            )
+        if len(unique_offer_types) != 3:
+            raise serializers.ValidationError(
+                "Exactly three different offer_types must be specified."
+            )
+        return value
+
     def create(self, validated_data):
         """
         Creates a new Offer and simultaneously instantiates all child nested
@@ -275,12 +292,8 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         """
         details_data = validated_data.pop('details')
         offer = Offer.objects.create(
-            user=self.context['request'].user,
-            **validated_data
-        )
+            user=self.context['request'].user, **validated_data)
         for detail_data in details_data:
             OfferDetail.objects.create(
-                offer=offer,
-                **detail_data
-            )
+                offer=offer, **detail_data)
         return offer

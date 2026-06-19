@@ -63,3 +63,60 @@ dict: Valid payload object for partial modification updates (PATCH request),
 targeting target values within the top-level entity properties and modifying
 specific nested child details.
 """
+
+INVALID_PAYLOAD_SINGLE_DETAIL = {
+    "title": "Ungültiges Angebot 1",
+    "description": "Dieses Angebot hat leider nur ein Detail.",
+    "details": [
+        {
+            "title": "Basic Paket",
+            "revisions": 1,
+            "delivery_time_in_days": 5,
+            "price": 50,
+            "features": "Feature A",
+            "offer_type": "basic"
+        }
+    ]
+}
+"""
+dict: Invalid payload object for simulating an Offer creation workflow
+(POST request), failing validation due to an insufficient number of
+nested tiers (only one detail provided instead of the required three)
+and an invalid data type for features (string instead of list).
+"""
+
+INVALID_PAYLOAD_DUPLICATE_TYPES = {
+    "title": "Ungültiges Angebot 2",
+    "description": "Dieses Angebot hat einen doppelten Typ.",
+    "details": [
+        {
+            "title": "Erstes Basic",
+            "revisions": 1,
+            "delivery_time_in_days": 5,
+            "price": 50,
+            "features": "Feature A",
+            "offer_type": "basic"
+        },
+        {
+            "title": "Zweites Basic",
+            "revisions": 2,
+            "delivery_time_in_days": 3,
+            "price": 80,
+            "features": "Feature B",
+            "offer_type": "basic"
+        },
+        {
+            "title": "Premium Paket",
+            "revisions": 5,
+            "delivery_time_in_days": 1,
+            "price": 150,
+            "features": "Feature C",
+            "offer_type": "premium"
+        }
+    ]
+}
+"""
+dict: Invalid payload object for simulating an Offer creation workflow
+(POST request), failing validation due to duplicate 'offer_type' values
+('basic' defined multiple times) within the nested configurations.
+"""
