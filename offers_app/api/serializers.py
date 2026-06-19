@@ -142,15 +142,17 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """
-        Validates incoming attributes and ensures no unexpected or malicious
-        fields are provided in the raw payload.
+        Validates incoming attributes, ensuring no unexpected fields are
+        provided in the raw payload and verifying that every nested detail
+        contains the mandatory 'offer_type' key.
 
         Args:
             attrs (dict): Dictionary of validated input attributes.
 
         Raises:
             serializers.ValidationError: If fields not present in the
-            serializer class are provided.
+                serializer class are provided, or if 'offer_type' is missing
+                from any nested detail item.
 
         Returns:
             dict: The validated attributes dataset.
@@ -158,9 +160,13 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         unknown = set(self.initial_data) - set(self.fields)
         if unknown:
             raise serializers.ValidationError({
-                field: "Unknown field."
-                for field in unknown
-            })
+                field: "Unknown field." for field in unknown})
+        details = self.initial_data.get('details')
+        if details:
+            for detail in details:
+                if 'offer_type' not in detail:
+                    raise serializers.ValidationError({
+                        'offer_type': 'This field is required.'})
         return attrs
 
     def update(self, instance, validated_data):

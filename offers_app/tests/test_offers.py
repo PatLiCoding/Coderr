@@ -6,7 +6,7 @@ from auth_app.models import User
 from offers_app.models import Offer, OfferDetail
 from offers_app.tests.test_data import VALID_OFFER_POST_DATA, \
     VALID_OFFER_PATCH_DATA, INVALID_PAYLOAD_SINGLE_DETAIL, \
-    INVALID_PAYLOAD_DUPLICATE_TYPES
+    INVALID_PAYLOAD_DUPLICATE_TYPES, INVALID_PAYLOAD_NON_EXISTENT_OFFER_TYPE
 
 
 class OffersTestsHappyPath(APITestCase):
@@ -227,3 +227,17 @@ class OffersTestsUnhappyPath(APITestCase):
             self.url, VALID_OFFER_PATCH_DATA, format='json')
         self.assertIn(response.status_code, [
                       status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
+
+    def test_patch_offer_patch_non_detail_type_returns_400(self):
+        """
+        Ensure that a PATCH request returns a 400 Bad Request status code
+        if the payload contains a nested detail configuration that lacks
+        the mandatory 'offer_type' field.
+        """
+        business_token = Token.objects.create(user=self.business_user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token ' + business_token.key)
+        self.url = reverse('offer-detail', kwargs={'offer_id': self.offer.id})
+        response = self.client.patch(
+            self.url, INVALID_PAYLOAD_NON_EXISTENT_OFFER_TYPE, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

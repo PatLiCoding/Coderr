@@ -73,7 +73,7 @@ INVALID_PAYLOAD_SINGLE_DETAIL = {
             "revisions": 1,
             "delivery_time_in_days": 5,
             "price": 50,
-            "features": "Feature A",
+            "features": ["Logo Design", "Flyer"],
             "offer_type": "basic"
         }
     ]
@@ -94,7 +94,7 @@ INVALID_PAYLOAD_DUPLICATE_TYPES = {
             "revisions": 1,
             "delivery_time_in_days": 5,
             "price": 50,
-            "features": "Feature A",
+            "features": ["Logo Design", "Flyer"],
             "offer_type": "basic"
         },
         {
@@ -102,7 +102,7 @@ INVALID_PAYLOAD_DUPLICATE_TYPES = {
             "revisions": 2,
             "delivery_time_in_days": 3,
             "price": 80,
-            "features": "Feature B",
+            "features": ["Logo Design", "Visitenkarte", "Briefpapier"],
             "offer_type": "basic"
         },
         {
@@ -110,7 +110,8 @@ INVALID_PAYLOAD_DUPLICATE_TYPES = {
             "revisions": 5,
             "delivery_time_in_days": 1,
             "price": 150,
-            "features": "Feature C",
+            "features": [
+                "Logo Design", "Visitenkarte", "Briefpapier", "Flyer"],
             "offer_type": "premium"
         }
     ]
@@ -119,4 +120,23 @@ INVALID_PAYLOAD_DUPLICATE_TYPES = {
 dict: Invalid payload object for simulating an Offer creation workflow
 (POST request), failing validation due to duplicate 'offer_type' values
 ('basic' defined multiple times) within the nested configurations.
+"""
+
+INVALID_PAYLOAD_NON_EXISTENT_OFFER_TYPE = {
+    "title": "Ungültiges Angebot 1",
+    "description": "Dieses Angebot hat leider nur ein Detail.",
+    "details": [
+        {
+            "title": "Basic Paket",
+            "revisions": 1,
+            "delivery_time_in_days": 5,
+            "price": 50,
+            "features": ["Logo Design", "Flyer"]
+        }
+    ]
+}
+"""
+dict: Invalid payload object for simulating an Offer workflow, failing
+validation because the mandatory 'offer_type' field is entirely missing
+within the nested detail structure.
 """
