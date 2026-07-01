@@ -29,7 +29,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+	'127.0.0.1',
+	'patricia-linne.developerakademie.org'
+]
 
 
 # Application definition
@@ -66,11 +69,13 @@ MIDDLEWARE = [
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:5500',
     'http://localhost:5500',
+    'https://patricia-linne.developerakademie.org'
 ]
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500',
     'http://localhost:5500',
+    'https://patricia-linne.developerakademie.org'
 ]
 
 ROOT_URLCONF = 'core.urls'

@@ -18,6 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import auth_app.api.urls
 import profile_app.api.urls
 import offers_app.api.urls
@@ -33,7 +34,7 @@ urlpatterns = [
     path('api/', include(orders_app.api.urls)),
     path('api/', include(reviews_app.api.urls)),
     path('api/', include(base_info_app.api.urls))
-]
+] + staticfiles_urlpatterns()
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
